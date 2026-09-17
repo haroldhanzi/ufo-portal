@@ -1,0 +1,777 @@
+{
+  "info": {
+    "_postman_id": "b191aafb-9393-456b-9e81-9ba81885d63b",
+    "name": "UFO Partner - TP-Link Omada Northbound API",
+    "description": "Postman collection built from the supplied @1-@10 Omada API documentation. AccessToken retrieval is intentionally excluded because an existing curl is already available.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55117203",
+    "_collection_link": "https://go.postman.co/collection/55117203-b191aafb-9393-456b-9e81-9ba81885d63b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "WiFi / SSID",
+      "item": [
+        {
+          "name": "Get SSID List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP success\", function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  pm.test(\"Omada errorCode is 0\", function () { pm.expect(j.errorCode).to.eql(0); });",
+                  "  if (j.result && j.result.length && j.result[0].ssidList && j.result[0].ssidList.length) {",
+                  "    pm.collectionVariables.set(\"wlanId\", j.result[0].wlanId || \"\");",
+                  "    pm.collectionVariables.set(\"ssidId\", j.result[0].ssidList[0].ssidId || \"\");",
+                  "  }",
+                  "} catch(e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/wireless-network/ssids?type=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "wireless-network",
+                "ssids"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Get all SSIDs for the site. type=3 is the supplied recommendation for AP + wireless router."
+          },
+          "response": []
+        },
+        {
+          "name": "Get SSID Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/wireless-network/wlans/{{wlanId}}/ssids/{{ssidId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "wireless-network",
+                "wlans",
+                "{{wlanId}}",
+                "ssids",
+                "{{ssidId}}"
+              ]
+            },
+            "description": "Get detailed SSID configuration by WLAN ID and SSID ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create New SSID v2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP success\", function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  pm.test(\"Omada errorCode is 0\", function () { pm.expect(j.errorCode).to.eql(0); });",
+                  "  if (j.result && j.result.id) pm.collectionVariables.set(\"ssidId\", j.result.id);",
+                  "} catch(e) {}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"UFO WIFI TEST\",\n  \"deviceType\": 3,\n  \"ssidEnable\": true,\n  \"chooseDevices\": 0,\n  \"apGroupIds\": [],\n  \"band\": 3,\n  \"guestNetEnable\": true,\n  \"security\": 3,\n  \"broadcast\": true,\n  \"vlanEnable\": false,\n  \"pskSetting\": {\n    \"securityKey\": \"ChangeMe123!\",\n    \"versionPsk\": 2,\n    \"encryptionPsk\": 3,\n    \"gikRekeyPskEnable\": false,\n    \"rekeyPskInterval\": 0,\n    \"intervalPskType\": 0\n  },\n  \"mloEnable\": false,\n  \"pmfMode\": 3,\n  \"enable11r\": true,\n  \"hidePwd\": true,\n  \"greEnable\": false,\n  \"prohibitWifiShare\": true,\n  \"wifiCallingEnable\": false,\n  \"enhancedIotConnectivity\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v2/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/wireless-network/ssids",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v2",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "wireless-network",
+                "ssids"
+              ]
+            },
+            "description": "Create a new SSID using the recommended parameters from @2. Change ssidName and ssidPassword collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Update SSID WLAN Schedule",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wlanScheduleEnable\": true,\n  \"action\": 1,\n  \"scheduleId\": \"{{scheduleId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/wireless-network/ssids/{{ssidId}}/wlan-schedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "wireless-network",
+                "ssids",
+                "{{ssidId}}",
+                "wlan-schedule"
+              ]
+            },
+            "description": "Update WLAN schedule. action=0 means radio off during the selected period; action=1 means radio on."
+          },
+          "response": []
+        },
+        {
+          "name": "Update SSID Basic Config / Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"UFO WIFI TEST\",\n  \"band\": 3,\n  \"autoWanAccess\": true,\n  \"guestNetEnable\": true,\n  \"security\": 3,\n  \"oweEnable\": false,\n  \"broadcast\": true,\n  \"vlanEnable\": false,\n  \"pskSetting\": {\n    \"securityKey\": \"ChangeMe1234!\",\n    \"versionPsk\": 2,\n    \"encryptionPsk\": 3,\n    \"gikRekeyPskEnable\": false,\n    \"rekeyPskInterval\": 0,\n    \"intervalPskType\": 0\n  },\n  \"mloEnable\": false,\n  \"pmfMode\": 3,\n  \"enable11r\": true,\n  \"hidePwd\": true,\n  \"greEnable\": false,\n  \"prohibitWifiShare\": true,\n  \"enhancedIotConnectivity\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v1/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/wireless-network/ssids/6aaa2e787da7b975689f87c2/basic-config",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "wireless-network",
+                "ssids",
+                "6aaa2e787da7b975689f87c2",
+                "basic-config"
+              ]
+            },
+            "description": "Update SSID basic configuration. For password changes, set ssidPassword. The supplied documentation recommends inheriting existing values and changing securityKey."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete SSID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/wireless-network/ssids/{{ssidId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "wireless-network",
+                "ssids",
+                "{{ssidId}}"
+              ]
+            },
+            "description": "Delete an existing SSID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Business Hours\",\n  \"dayMode\": 1,\n//   dayMode\n// 0 = Every Day\n// 1 = Weekday\n// 2 = Weekend\n// 3 = Customized\n  \"timeList\": [\n    {\n      \"dayType\": 0,\n      \"startTimeH\": 6,\n      \"startTimeM\": 0,\n      \"endTimeH\": 22,\n      \"endTimeM\": 0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v1/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/time-range-profiles",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "time-range-profiles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Schedule List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v1/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/time-range-profiles",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "time-range-profiles"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Portals",
+      "item": [
+        {
+          "name": "Get Portal List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP success\", function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  pm.test(\"Omada errorCode is 0\", function () { pm.expect(j.errorCode).to.eql(0); });",
+                  "  if (j.result && j.result.length && j.result[0].id) pm.collectionVariables.set(\"portalId\", j.result[0].id);",
+                  "} catch(e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/portals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "portals"
+              ]
+            },
+            "description": "Get portal list for a site."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Portal - Voucher Authentication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Partner Voucher Portal\",\n  \"enable\": true,\n  \"ssidList\": [\n    \"6a4eb7b180d448422dc7d0d5\"\n  ],\n  \"networkList\": [],\n  \"authType\": 11,\n  \"authTimeout\": {\n    \"customTimeout\": 1,\n    \"customTimeoutUnit\": 3\n  },\n  \"httpsRedirectEnable\": true,\n  \"landingPage\": 1,\n  \"hotspot\": {\n    \"enabledTypes\": [\n      3\n    ]\n  },\n  \"pageType\": 1,\n  \"portalCustomize\": {\n    \"defaultLanguage\": 1,\n    \"logoDisplay\": true,\n    \"welcomeEnable\": false,\n    \"termsOfServiceEnable\": false,\n    \"copyrightEnable\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v1/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/portal",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "portal"
+              ]
+            },
+            "description": "Create a hotspot portal using Voucher authentication (authType=11, hotspot.enabledTypes=[3]). The documentation states portal names should not contain substring 'UFO'."
+          },
+          "response": []
+        },
+        {
+          "name": "Modify Portal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Partner Voucher Portal\",\n  \"enable\": true,\n  \"ssidList\": [\n    \"6a4eb7b180d448422dc7d0d5\"\n  ],\n  \"networkList\": [],\n  \"authType\": 11,\n  \"authTimeout\": {\n    \"customTimeout\": 1,\n    \"customTimeoutUnit\": 3\n  },\n  \"httpsRedirectEnable\": true,\n  \"landingPage\": 1,\n  \"hotspot\": {\n    \"enabledTypes\": [\n      3\n    ]\n  },\n  \"pageType\": 1,\n  \"portalCustomize\": {\n    \"defaultLanguage\": 1,\n    \"logoDisplay\": true,\n    \"welcomeEnable\": false,\n    \"termsOfServiceEnable\": false,\n    \"copyrightEnable\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://euw1-omada-northbound.tplinkcloud.com/openapi/v1/caaaa331cf6e876e8fea7403e00e7ff6/sites/6a4eb57c543849228eba7341/portal/6a63e809d6ce8f6ba1a48510",
+              "protocol": "https",
+              "host": [
+                "euw1-omada-northbound",
+                "tplinkcloud",
+                "com"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "caaaa331cf6e876e8fea7403e00e7ff6",
+                "sites",
+                "6a4eb57c543849228eba7341",
+                "portal",
+                "6a63e809d6ce8f6ba1a48510"
+              ]
+            },
+            "description": "Modify portal. This endpoint also covers WiFi association changes and portal customization such as background/logo."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Portal",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/portal/{{portalId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "portal",
+                "{{portalId}}"
+              ]
+            },
+            "description": "Delete portal by portalId."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "Get Voucher Group List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP success\", function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  pm.test(\"Omada errorCode is 0\", function () { pm.expect(j.errorCode).to.eql(0); });",
+                  "  if (j.result && j.result.data && j.result.data.length && j.result.data[0].id) {",
+                  "    pm.collectionVariables.set(\"voucherGroupId\", j.result.data[0].id);",
+                  "  }",
+                  "} catch(e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/hotspot/voucher-groups?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "hotspot",
+                "voucher-groups"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get voucher group list. Documentation recommends page=1 and pageSize=10."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Voucher Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"HTTP success\", function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  pm.test(\"Omada errorCode is 0\", function () { pm.expect(j.errorCode).to.eql(0); });",
+                  "  if (j.result && j.result.id) pm.collectionVariables.set(\"voucherGroupId\", j.result.id);",
+                  "} catch(e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "AccessToken={{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{voucherGroupName}}\",\n  \"amount\": 10,\n  \"codeLength\": 8,\n  \"codeForm\": [\n    0\n  ],\n  \"limitType\": 0,\n  \"limitNum\": 1,\n  \"durationType\": 0,\n  \"duration\": 1440,\n  \"timingType\": 0,\n  \"rateLimit\": {\n    \"mode\": 0,\n    \"rateLimitProfileId\": \"\",\n    \"customRateLimit\": {\n      \"downLimitEnable\": false,\n      \"downLimit\": 0,\n      \"upLimitEnable\": false,\n      \"upLimit\": 0\n    }\n  },\n  \"trafficLimitEnable\": true,\n  \"trafficLimit\": 1024,\n  \"trafficLimitFrequency\": 0,\n  \"unitPrice\": 1,\n  \"currency\": \"{{voucherCurrency}}\",\n  \"applyToAllPortals\": false,\n  \"portals\": [\n    \"{{portalId}}\"\n  ],\n  \"expirationTime\": \"{{voucherExpirationTime}}\",\n  \"effectiveTime\": \"{{voucherEffectiveTime}}\",\n  \"logout\": true,\n  \"description\": \"UFO Partner voucher group\",\n  \"printComments\": \"\",\n  \"validityType\": 1,\n  \"schedule\": {\n    \"type\": 0,\n    \"dailyStartHour\": 0,\n    \"dailyStartMin\": 0,\n    \"dailyEndHour\": 23,\n    \"dailyEndMin\": 59,\n    \"weeklyEnableDays\": []\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/openapi/v1/{{omadacId}}/sites/{{siteId}}/hotspot/voucher-groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "openapi",
+                "v1",
+                "{{omadacId}}",
+                "sites",
+                "{{siteId}}",
+                "hotspot",
+                "voucher-groups"
+              ]
+            },
+            "description": "Create a voucher group using the recommended structure from @10. Set portalId and timestamps before sending."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://euw1-omada-northbound.tplinkcloud.com"
+    },
+    {
+      "key": "omadacId",
+      "value": "caaaa331cf6e876e8fea7403e00e7ff6"
+    },
+    {
+      "key": "siteId",
+      "value": "6a4eb57c543849228eba7341"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "wlanId",
+      "value": ""
+    },
+    {
+      "key": "ssidId",
+      "value": ""
+    },
+    {
+      "key": "ssidName",
+      "value": "UFO WIFI TEST"
+    },
+    {
+      "key": "ssidPassword",
+      "value": "ChangeMe123!"
+    },
+    {
+      "key": "scheduleId",
+      "value": ""
+    },
+    {
+      "key": "portalId",
+      "value": ""
+    },
+    {
+      "key": "portalName",
+      "value": "Partner Voucher Portal"
+    },
+    {
+      "key": "voucherGroupId",
+      "value": ""
+    },
+    {
+      "key": "voucherGroupName",
+      "value": "Partner Voucher Group"
+    },
+    {
+      "key": "voucherCurrency",
+      "value": "USD"
+    },
+    {
+      "key": "voucherEffectiveTime",
+      "value": "0"
+    },
+    {
+      "key": "voucherExpirationTime",
+      "value": "0"
+    }
+  ]
+}

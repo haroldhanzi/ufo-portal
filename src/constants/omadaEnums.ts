@@ -1,0 +1,16 @@
+export const DAY_MODES=[{value:0,label:'Every Day'},{value:1,label:'Weekdays'},{value:2,label:'Weekends'},{value:3,label:'Custom Days'}] as const;
+export const DAYS=[{value:1,key:'dayMon',label:'Monday'},{value:2,key:'dayTue',label:'Tuesday'},{value:3,key:'dayWed',label:'Wednesday'},{value:4,key:'dayThu',label:'Thursday'},{value:5,key:'dayFri',label:'Friday'},{value:6,key:'daySat',label:'Saturday'},{value:7,key:'daySun',label:'Sunday'}] as const;
+export const BANDS=[{value:1,label:'2.4 GHz'},{value:2,label:'5 GHz'},{value:4,label:'6 GHz'}] as const;
+export const WIFI_SECURITY=[{value:0,label:'None'},{value:2,label:'WPA Enterprise'},{value:3,label:'WPA Personal'},{value:4,label:'PPSK without RADIUS'},{value:5,label:'PPSK with RADIUS'}] as const;
+export const WPA_VERSIONS=[{value:1,label:'WPA-PSK'},{value:2,label:'WPA2-PSK'},{value:3,label:'WPA/WPA2-PSK'},{value:4,label:'WPA2-PSK/WPA3-SAE'}] as const;
+export const ENCRYPTIONS=[{value:1,label:'Auto'},{value:3,label:'AES'}] as const;
+export const PMF_MODES=[{value:1,label:'Mandatory'},{value:2,label:'Capable'},{value:3,label:'Disabled'}] as const;
+export const PORTAL_AUTH=[{value:0,label:'No Authentication'},{value:1,label:'Simple Password'},{value:2,label:'External Radius'},{value:4,label:'External Portal Server'},{value:11,label:'Hotspot'},{value:15,label:'LDAP'},{value:16,label:'Social Login'}] as const;
+export const HOTSPOT_AUTH=[{value:3,label:'Voucher'},{value:5,label:'Local User'},{value:6,label:'SMS'},{value:8,label:'Hotspot Radius'},{value:12,label:'Form Authentication'}] as const;
+export const VOUCHER_LIMIT_TYPES=[{value:0,label:'Limited Usage Counts'},{value:1,label:'Limited Online Users'},{value:2,label:'Unlimited'}] as const;
+export const DURATION_TYPES=[{value:0,label:'Client Duration'},{value:1,label:'Voucher Duration'}] as const;
+export const TIMING_TYPES=[{value:0,label:'Timing by Time'},{value:1,label:'Timing by Usage'}] as const;
+export const TRAFFIC_FREQUENCIES=[{value:0,label:'Total'},{value:1,label:'Daily'},{value:2,label:'Weekly'},{value:3,label:'Monthly'}] as const;
+export const VALIDITY_TYPES=[{value:0,label:'Anytime'},{value:1,label:'Effective Date to Expiration Date'},{value:2,label:'Scheduled'}] as const;
+export const labelFor=(items:readonly {value:number;label:string}[],value:number)=>items.find(x=>x.value===value)?.label ?? 'Unknown';
+export const bandLabel=(mask:number)=>BANDS.filter(x=>(mask&x.value)!==0).map(x=>x.label).join(' + ')||'Not set';
