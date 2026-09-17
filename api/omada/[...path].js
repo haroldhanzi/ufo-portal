@@ -1,6 +1,8 @@
 function getOmadaOrigin() {
   const configuredOrigin =
-    process.env.OMADA_BASE_URL || process.env.VITE_OMADA_BASE_URL;
+    process.env.OMADA_BASE_URL ||
+    process.env.VITE_OMADA_BASE_URL ||
+    "https://euw1-omada-northbound.tplinkcloud.com";
   if (!configuredOrigin) return undefined;
 
   try {

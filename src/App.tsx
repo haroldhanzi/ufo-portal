@@ -33,7 +33,7 @@ import {
   getSiteId,
   setSiteId,
 } from "./services/omadaClient";
-const location = import.meta.env.VITE_LOCATION_NAME || "Location XYZ";
+const location = import.meta.env.VITE_LOCATION_NAME || "UFO Test Location";
 const links = [
   ["Dashboard", "/", <DashboardIcon />],
   ["WiFi Networks", "/wifi", <WifiIcon />],

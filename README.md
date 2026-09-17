@@ -4,14 +4,14 @@ React/TypeScript management portal for TP-Link Omada Northbound APIs.
 
 ## Local setup
 
-1. Copy `.env.example` to `.env` and configure `VITE_OMADA_BASE_URL`, `VITE_OMADA_ID`, `VITE_OMADA_SITE_ID`, `VITE_OMADA_CLIENT_ID`, and `VITE_OMADA_CLIENT_SECRET`. `.env` is excluded from source control.
+1. The shared test environment works with the included test configuration. To override it, copy `.env.example` to `.env` and change the desired values. `.env` is excluded from source control.
 2. Run `npm install`.
 3. Run `npm run dev`.
 4. Open **API access** in the header. Request a token with an Omada client ID and secret, or paste an existing AccessToken. The client secret is discarded after the request; only the token is stored in session storage.
 
 ## Vercel configuration
 
-Configure the following Environment Variables for every Vercel environment used by the application, then redeploy so Vite can include them in the build:
+The shared development deployment includes test defaults and does not require Vercel environment variables. To override those defaults for another environment, configure the following variables and redeploy so Vite can include them in the build:
 
 ```env
 VITE_OMADA_BASE_URL=https://euw1-omada-northbound.tplinkcloud.com
