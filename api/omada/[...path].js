@@ -1,4 +1,16 @@
-const OMADA_ORIGIN = "https://euw1-omada-northbound.tplinkcloud.com";
+function getOmadaOrigin() {
+  const configuredOrigin =
+    process.env.OMADA_BASE_URL || process.env.VITE_OMADA_BASE_URL;
+  if (!configuredOrigin) return undefined;
+
+  try {
+    const origin = new URL(configuredOrigin);
+    if (origin.protocol !== "https:") return undefined;
+    return origin.origin;
+  } catch {
+    return undefined;
+  }
+}
 
 export default async function handler(request, response) {
   response.setHeader("Access-Control-Allow-Origin", "*");
@@ -15,9 +27,17 @@ export default async function handler(request, response) {
     return response.status(204).end();
   }
 
+  const omadaOrigin = getOmadaOrigin();
+  if (!omadaOrigin) {
+    return response.status(500).json({
+      errorCode: -1,
+      msg: "OMADA_BASE_URL (or VITE_OMADA_BASE_URL) must be configured as a valid HTTPS URL.",
+    });
+  }
+
   const incomingUrl = new URL(request.url, "https://vercel.local");
   const upstreamPath = incomingUrl.pathname.replace(/^\/api\/omada/, "");
-  const upstreamUrl = `${OMADA_ORIGIN}${upstreamPath}${incomingUrl.search}`;
+  const upstreamUrl = `${omadaOrigin}${upstreamPath}${incomingUrl.search}`;
   const headers = { "Content-Type": "application/json" };
   if (request.headers.authorization) {
     headers.Authorization = request.headers.authorization;

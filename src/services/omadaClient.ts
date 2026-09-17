@@ -2,10 +2,9 @@ import axios, { AxiosError } from "axios";
 const omadaBaseURL = import.meta.env.VITE_OMADA_BASE_URL || "";
 const baseURL = import.meta.env.DEV ? "/omada-api" : "/api/omada";
 export const omadaId = import.meta.env.VITE_OMADA_ID || "";
-const defaultSiteId =
-  import.meta.env.VITE_OMADA_SITE_ID || "6a4eb57c543849228eba7341";
-const clientId = "f39dc9be33dd464cb7fce8a7a5756fd7";
-const clientSecret = "9719d73c0d4c493997ec55d781ef1d7b";
+const defaultSiteId = import.meta.env.VITE_OMADA_SITE_ID || "";
+const clientId = import.meta.env.VITE_OMADA_CLIENT_ID || "";
+const clientSecret = import.meta.env.VITE_OMADA_CLIENT_SECRET || "";
 export const getSiteId = () =>
   sessionStorage.getItem("omadaSiteId") || defaultSiteId;
 export const setSiteId = (siteId: string) =>
@@ -89,6 +88,10 @@ function saveToken(result: TokenResult) {
 }
 async function tokenRequest(grantType: "client_credentials" | "refresh_token") {
   requireConfig();
+  if (!clientId || !clientSecret)
+    throw new OmadaError(
+      "Omada client ID and client secret must be configured in the environment.",
+    );
   try {
     const refreshToken =
       sessionStorage.getItem("omadaRefreshToken") || undefined;

@@ -4,10 +4,25 @@ React/TypeScript management portal for TP-Link Omada Northbound APIs.
 
 ## Local setup
 
-1. Copy `.env.example` to `.env` and update the controller, site, location, and optional test client-credential values. `.env` is excluded from source control.
+1. Copy `.env.example` to `.env` and configure `VITE_OMADA_BASE_URL`, `VITE_OMADA_ID`, `VITE_OMADA_SITE_ID`, `VITE_OMADA_CLIENT_ID`, and `VITE_OMADA_CLIENT_SECRET`. `.env` is excluded from source control.
 2. Run `npm install`.
 3. Run `npm run dev`.
 4. Open **API access** in the header. Request a token with an Omada client ID and secret, or paste an existing AccessToken. The client secret is discarded after the request; only the token is stored in session storage.
+
+## Vercel configuration
+
+Configure the following Environment Variables for every Vercel environment used by the application, then redeploy so Vite can include them in the build:
+
+```env
+VITE_OMADA_BASE_URL=https://euw1-omada-northbound.tplinkcloud.com
+VITE_OMADA_ID=caaaa331cf6e876e8fea7403e00e7ff6
+VITE_OMADA_SITE_ID=6a4eb57c543849228eba7341
+VITE_OMADA_CLIENT_ID=f39dc9be33dd464cb7fce8a7a5756fd7
+VITE_OMADA_CLIENT_SECRET=9719d73c0d4c493997ec55d781ef1d7b
+VITE_LOCATION_NAME=UFO Test Location
+```
+
+The serverless proxy also accepts `OMADA_BASE_URL`; when it is not set it uses `VITE_OMADA_BASE_URL`. Do not commit a populated `.env` file.
 
 ## Validation
 
