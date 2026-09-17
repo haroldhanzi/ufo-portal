@@ -3,14 +3,21 @@ function getOmadaOrigin() {
     process.env.OMADA_BASE_URL ||
     process.env.VITE_OMADA_BASE_URL ||
     "https://euw1-omada-northbound.tplinkcloud.com";
-  if (!configuredOrigin) return undefined;
 
   try {
     const origin = new URL(configuredOrigin);
-    if (origin.protocol !== "https:") return undefined;
-    return origin.origin;
+    return origin.protocol === "https:" ? origin.origin : undefined;
   } catch {
     return undefined;
+  }
+}
+
+function appendQuery(url, query) {
+  for (const [key, value] of Object.entries(query)) {
+    if (key === "upstreamPath" || value === undefined) continue;
+    for (const item of Array.isArray(value) ? value : [value]) {
+      url.searchParams.append(key, String(item));
+    }
   }
 }
 
@@ -25,25 +32,31 @@ export default async function handler(request, response) {
     "Authorization, Content-Type",
   );
 
-  if (request.method === "OPTIONS") {
-    return response.status(204).end();
+  if (request.method === "OPTIONS") return response.status(204).end();
+
+  if (!["GET", "POST", "PATCH", "DELETE"].includes(request.method)) {
+    response.setHeader("Allow", "GET, POST, PATCH, DELETE, OPTIONS");
+    return response.status(405).json({ errorCode: -1, msg: "Method not allowed." });
   }
 
   const omadaOrigin = getOmadaOrigin();
   if (!omadaOrigin) {
     return response.status(500).json({
       errorCode: -1,
-      msg: "OMADA_BASE_URL (or VITE_OMADA_BASE_URL) must be configured as a valid HTTPS URL.",
+      msg: "OMADA_BASE_URL (or VITE_OMADA_BASE_URL) must be a valid HTTPS URL.",
     });
   }
 
-  const incomingUrl = new URL(request.url, "https://vercel.local");
-  const upstreamPath = incomingUrl.pathname.replace(/^\/api\/omada/, "");
-  const upstreamUrl = `${omadaOrigin}${upstreamPath}${incomingUrl.search}`;
-  const headers = { "Content-Type": "application/json" };
-  if (request.headers.authorization) {
-    headers.Authorization = request.headers.authorization;
+  const pathValue = request.query.upstreamPath;
+  const upstreamPath = Array.isArray(pathValue) ? pathValue.join("/") : pathValue;
+  if (!upstreamPath) {
+    return response.status(400).json({ errorCode: -1, msg: "Missing Omada API path." });
   }
+
+  const upstreamUrl = new URL(`/${upstreamPath}`, omadaOrigin);
+  appendQuery(upstreamUrl, request.query);
+  const headers = { "Content-Type": "application/json" };
+  if (request.headers.authorization) headers.Authorization = request.headers.authorization;
 
   const hasBody = !["GET", "HEAD"].includes(request.method);
   const body = hasBody
@@ -61,8 +74,7 @@ export default async function handler(request, response) {
     });
     const contentType = upstream.headers.get("content-type");
     if (contentType) response.setHeader("Content-Type", contentType);
-    const payload = await upstream.text();
-    return response.status(upstream.status).send(payload);
+    return response.status(upstream.status).send(await upstream.text());
   } catch (error) {
     return response.status(502).json({
       errorCode: -1,
