@@ -23,7 +23,6 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
 import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
-import ActionsMenu from "../components/common/ActionsMenu";
 import { DAY_MODES, DAYS, labelFor } from "../constants/omadaEnums";
 import { createSchedule, listSchedules } from "../services/scheduleService";
 import type { Schedule, ScheduleForm } from "../types/omada";
@@ -80,7 +79,7 @@ export default function SchedulePage() {
         <Table>
           <TableHead>
             <TableRow>
-              {["Schedule Name", "Days", "Time", "Profile ID", "Actions"].map(
+              {["Schedule Name", "Days", "Time Range"].map(
                 (x) => (
                   <TableCell key={x}>{x}</TableCell>
                 ),
@@ -98,27 +97,12 @@ export default function SchedulePage() {
                   {r.timeList?.[0] ? formatTime(r.timeList[0]) : "—"}
                   {r.timeList?.length > 1 ? ` (+${r.timeList.length - 1})` : ""}
                 </TableCell>
-                <TableCell sx={{ fontFamily: "monospace", fontSize: 12 }}>
-                  {r.profileId}
-                </TableCell>
-                <TableCell>
-                  <ActionsMenu
-                    label={`Actions for ${r.name}`}
-                    items={[
-                      {
-                        label: "View details",
-                        disabled: true,
-                        onClick: () => undefined,
-                      },
-                    ]}
-                  />
-                </TableCell>
               </TableRow>
             ))}
             {!rows.length && !loading && (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={3}
                   align="center"
                   sx={{ py: 6, color: "text.secondary" }}
                 >

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,6 +13,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Stack,
   Switch,
   Table,
@@ -25,16 +25,17 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
+import { ApiErrorSnackbar, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
-import { HOTSPOT_AUTH, labelFor, PORTAL_AUTH } from "../constants/omadaEnums";
+import { HOTSPOT_AUTH, PORTAL_AUTH } from "../constants/omadaEnums";
 import type { Portal, PortalForm, Ssid } from "../types/omada";
 import {
   createPortal,
   deletePortal,
   listPortals,
   updatePortal,
+  updatePortalAppearance,
 } from "../services/portalService";
 import { listSsids } from "../services/ssidService";
 export default function PortalPage() {
@@ -43,9 +44,10 @@ export default function PortalPage() {
     [loading, setLoading] = useState(false),
     [error, setError] = useState<unknown>(),
     [open, setOpen] = useState(false),
-    [editing, setEditing] = useState<Portal | null>(null),
+    [associating, setAssociating] = useState<Portal | null>(null),
+    [editingAppearance, setEditingAppearance] = useState<Portal | null>(null),
     [deleting, setDeleting] = useState<Portal | null>(null),
-    [view, setView] = useState<Portal | null>(null);
+    [success, setSuccess] = useState("");
   const load = useCallback(async () => {
     setLoading(true);
     setError(undefined);
@@ -68,9 +70,11 @@ export default function PortalPage() {
     try {
       await fn();
       setOpen(false);
-      setEditing(null);
+      setAssociating(null);
+      setEditingAppearance(null);
       setDeleting(null);
       await load();
+      setSuccess("Changes saved successfully.");
     } catch (e) {
       setError(e);
       setLoading(false);
@@ -89,19 +93,13 @@ export default function PortalPage() {
         onAdd={() => setOpen(true)}
         onRefresh={load}
       />
-      <ApiErrorAlert error={error} />
+      <ApiErrorSnackbar error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
       <Paper className="table-wrap">
         <Table>
           <TableHead>
             <TableRow>
-              {[
-                "Portal Name",
-                "Enabled",
-                "Authentication Type",
-                "Associated WiFi Networks",
-                "Actions",
-              ].map((x) => (
+              {["Portal Name", "Associated WiFi Networks", "Actions"].map((x) => (
                 <TableCell key={x}>{x}</TableCell>
               ))}
             </TableRow>
@@ -112,25 +110,19 @@ export default function PortalPage() {
                 <TableCell>
                   <b>{r.name}</b>
                 </TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    color={r.enable ? "success" : "default"}
-                    label={r.enable ? "Enabled" : "Disabled"}
-                  />
-                </TableCell>
-                <TableCell>{labelFor(PORTAL_AUTH, r.authType)}</TableCell>
                 <TableCell>{names(r.ssidList) || "None"}</TableCell>
                 <TableCell>
                   <ActionsMenu
                     label={`Actions for ${r.name}`}
                     items={[
-                      { label: "View details", onClick: () => setView(r) },
                       {
                         label: "Manage WiFi associations",
-                        onClick: () => setEditing(r),
+                        onClick: () => setAssociating(r),
                       },
-                      { label: "Edit portal", onClick: () => setEditing(r) },
+                      {
+                        label: "Edit portal",
+                        onClick: () => setEditingAppearance(r),
+                      },
                       {
                         label: "Delete portal",
                         color: "error",
@@ -144,7 +136,7 @@ export default function PortalPage() {
             {!rows.length && !loading && (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={3}
                   align="center"
                   sx={{ py: 6, color: "text.secondary" }}
                 >
@@ -161,12 +153,21 @@ export default function PortalPage() {
         onClose={() => setOpen(false)}
         onSave={(f) => act(() => createPortal(f))}
       />
-      {editing && (
+      {associating && (
         <AssociationDialog
-          portal={editing}
+          portal={associating}
           ssids={ssids}
-          onClose={() => setEditing(null)}
-          onSave={(ids) => act(() => updatePortal(editing, ids))}
+          onClose={() => setAssociating(null)}
+          onSave={(ids) => act(() => updatePortal(associating, ids))}
+        />
+      )}
+      {editingAppearance && (
+        <AppearanceDialog
+          portal={editingAppearance}
+          onClose={() => setEditingAppearance(null)}
+          onSave={(logoDisplay) =>
+            act(() => updatePortalAppearance(editingAppearance, logoDisplay))
+          }
         />
       )}
       <ConfirmDialog
@@ -178,37 +179,12 @@ export default function PortalPage() {
           act(() => deletePortal(deleting!.id || deleting!.portalId!))
         }
       />
-      <Dialog
-        open={!!view}
-        onClose={() => setView(null)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Portal details</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="Portal Name"
-              value={view?.name || ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-            <TextField
-              label="Authentication"
-              value={view ? labelFor(PORTAL_AUTH, view.authType) : ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-            <TextField
-              label="Associated WiFi"
-              multiline
-              value={view ? names(view.ssidList) : ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setView(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={!!success}
+        autoHideDuration={4000}
+        onClose={() => setSuccess("")}
+        message={success}
+      />
     </>
   );
 }
@@ -397,7 +373,7 @@ function AssociationDialog({
   const [ids, setIds] = useState<string[]>(portal.ssidList || []);
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Edit {portal.name}</DialogTitle>
+      <DialogTitle>Edit WiFi Associations</DialogTitle>
       <DialogContent>
         <FormControl fullWidth sx={{ mt: 1 }}>
           <InputLabel>Associated WiFi Networks</InputLabel>
@@ -427,6 +403,57 @@ function AssociationDialog({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button variant="contained" onClick={() => onSave(ids)}>
+          Save changes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function AppearanceDialog({
+  portal,
+  onClose,
+  onSave,
+}: {
+  portal: Portal;
+  onClose: () => void;
+  onSave: (logoDisplay: boolean) => void;
+}) {
+  const currentLogoDisplay = portal.portalCustomize?.logoDisplay !== false;
+  const [logo, setLogo] = useState(currentLogoDisplay ? "default" : "none");
+  return (
+    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Edit Portal Appearance</DialogTitle>
+      <DialogContent>
+        <Stack spacing={3} mt={1}>
+          <FormControl>
+            <InputLabel>Background</InputLabel>
+            <Select value="default" label="Background">
+              <MenuItem value="default">Use default UFO background</MenuItem>
+              <MenuItem value="upload" disabled>
+                Upload a new background - API upload support required
+              </MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl>
+            <InputLabel>Logo</InputLabel>
+            <Select
+              value={logo}
+              label="Logo"
+              onChange={(event) => setLogo(event.target.value)}
+            >
+              <MenuItem value="none">Do not use a logo</MenuItem>
+              <MenuItem value="default">Use default UFO logo</MenuItem>
+              <MenuItem value="upload" disabled>
+                Upload a new logo - API upload support required
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" onClick={() => onSave(logo === "default")}>
           Save changes
         </Button>
       </DialogActions>

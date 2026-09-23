@@ -25,7 +25,11 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
+import {
+  ApiErrorAlert,
+  ApiErrorSnackbar,
+  Loading,
+} from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import VoucherGroupDetailDialog from "../components/vouchers/VoucherGroupDetailDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
@@ -160,7 +164,6 @@ export default function VoucherPage() {
             {voucherLoading ? "Searching..." : "Search voucher"}
           </Button>
         </Stack>
-        <ApiErrorAlert error={voucherError} />
         {voucher && (
           <VoucherResult
             voucher={voucher}
@@ -168,6 +171,10 @@ export default function VoucherPage() {
           />
         )}
       </Paper>
+      <ApiErrorSnackbar
+        error={voucherError}
+        onClose={() => setVoucherError(undefined)}
+      />
       <ConfirmDialog
         open={deleteOpen}
         title={`Delete voucher “${voucher?.code || voucher?.id || ""}”?`}

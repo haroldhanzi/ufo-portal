@@ -125,7 +125,18 @@ export function buildCreatePortalRequest(f: PortalForm) {
     },
   };
 }
-export function buildPortalUpdate(current: Portal, ssidList: string[]) {
+export function buildPortalUpdate(
+  current: Portal,
+  ssidList: string[],
+  portalCustomize: Record<string, unknown> =
+    current.portalCustomize ?? {
+      defaultLanguage: 1,
+      logoDisplay: true,
+      welcomeEnable: false,
+      termsOfServiceEnable: false,
+      copyrightEnable: false,
+    },
+) {
   const authType = current.authType ?? 11;
   return {
     name: current.name,
@@ -148,13 +159,7 @@ export function buildPortalUpdate(current: Portal, ssidList: string[]) {
         }
       : {}),
     pageType: current.pageType ?? 1,
-    portalCustomize: current.portalCustomize ?? {
-      defaultLanguage: 1,
-      logoDisplay: true,
-      welcomeEnable: false,
-      termsOfServiceEnable: false,
-      copyrightEnable: false,
-    },
+    portalCustomize,
   };
 }
 export function buildCreateVoucherRequest(f: VoucherForm) {

@@ -26,6 +26,13 @@ export interface Ssid {
   };
   wlanScheduleEnable?: boolean;
   scheduleId?: string;
+  scheduleName?: string;
+  wlanSchedule?: {
+    wlanScheduleEnable?: boolean;
+    scheduleId?: string;
+    scheduleName?: string;
+    action?: number;
+  };
   portalName?: string;
   [key: string]: unknown;
 }
@@ -179,6 +186,9 @@ export interface PortalForm {
   hotspotType: number;
   landingPage: number;
   httpsRedirectEnable: boolean;
+}
+export interface PortalAppearanceForm {
+  logoDisplay: boolean;
 }
 export interface VoucherForm {
   name: string;

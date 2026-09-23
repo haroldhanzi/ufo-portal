@@ -137,6 +137,30 @@ describe("Omada request builders", () => {
     });
   });
 
+  it("preserves portal state while updating appearance settings", () => {
+    const portal = {
+      id: "portal-1",
+      name: "Partner Portal",
+      enable: true,
+      ssidList: ["ssid-1"],
+      networkList: [],
+      authType: 11,
+      hotspotTypes: [3],
+    } as Portal;
+    const result = buildPortalUpdate(portal, portal.ssidList, {
+      defaultLanguage: 1,
+      logoDisplay: false,
+      welcomeEnable: false,
+      termsOfServiceEnable: false,
+      copyrightEnable: false,
+    });
+    expect(result).toMatchObject({
+      name: "Partner Portal",
+      ssidList: ["ssid-1"],
+      portalCustomize: { logoDisplay: false },
+    });
+  });
+
   it("omits disabled voucher limits and converts validity dates", () => {
     const result = buildCreateVoucherRequest({
       name: "Group",

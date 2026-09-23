@@ -4,7 +4,6 @@ import {
   Alert,
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -35,7 +34,6 @@ import ActionsMenu from "../components/common/ActionsMenu";
 import {
   BANDS,
   bandLabel,
-  labelFor,
   PMF_MODES,
   WIFI_SECURITY,
   WPA_VERSIONS,
@@ -74,7 +72,6 @@ export default function WifiPage() {
     [passwordFor, setPasswordFor] = useState<Ssid | null>(null),
     [scheduleFor, setScheduleFor] = useState<Ssid | null>(null),
     [deleting, setDeleting] = useState<Ssid | null>(null),
-    [view, setView] = useState<Ssid | null>(null),
     [success, setSuccess] = useState("");
   const load = useCallback(async () => {
     setLoading(true);
@@ -135,15 +132,7 @@ export default function WifiPage() {
         <Table>
           <TableHead>
             <TableRow>
-              {[
-                "WiFi Name",
-                "Bands",
-                "Security",
-                "Guest Network",
-                "Schedule",
-                "Portal",
-                "Actions",
-              ].map((x) => (
+              {["WiFi Name", "Password", "Schedule", "Portal", "Actions"].map((x) => (
                 <TableCell key={x}>{x}</TableCell>
               ))}
             </TableRow>
@@ -154,24 +143,15 @@ export default function WifiPage() {
                 <TableCell>
                   <b>{r.name}</b>
                 </TableCell>
-                <TableCell>{bandLabel(r.band)}</TableCell>
-                <TableCell>{labelFor(WIFI_SECURITY, r.security)}</TableCell>
                 <TableCell>
-                  <Chip
-                    size="small"
-                    color={r.guestNetEnable ? "success" : "default"}
-                    label={r.guestNetEnable ? "Enabled" : "Disabled"}
-                  />
+                  {r.security === 0 ? "No password" : "••••••••"}
                 </TableCell>
-                <TableCell>
-                  {r.wlanScheduleEnable ? "Assigned" : "Always available"}
-                </TableCell>
+                <TableCell>{scheduleLabel(r, schedules)}</TableCell>
                 <TableCell>{r.portalName || "—"}</TableCell>
                 <TableCell>
                   <ActionsMenu
                     label={`Actions for ${r.name}`}
                     items={[
-                      { label: "View details", onClick: () => setView(r) },
                       {
                         label: "Change password",
                         onClick: () => setPasswordFor(r),
@@ -193,7 +173,7 @@ export default function WifiPage() {
             {!rows.length && !loading && (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={5}
                   align="center"
                   sx={{ py: 6, color: "text.secondary" }}
                 >
@@ -225,6 +205,7 @@ export default function WifiPage() {
         }
       />
       <ScheduleDialog
+        key={`${scheduleFor?.ssidId || scheduleFor?.id || "closed"}-${scheduleFor?.wlanSchedule?.scheduleId || scheduleFor?.scheduleId || "none"}`}
         ssid={scheduleFor}
         schedules={schedules}
         onClose={() => setScheduleFor(null)}
@@ -252,36 +233,6 @@ export default function WifiPage() {
           }, "WiFi network deleted successfully.")
         }
       />
-      <Dialog
-        open={!!view}
-        onClose={() => setView(null)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>WiFi network details</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="SSID Name"
-              value={view?.name || ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-            <TextField
-              label="Bands"
-              value={view ? bandLabel(view.band) : ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-            <TextField
-              label="Security"
-              value={view ? labelFor(WIFI_SECURITY, view.security) : ""}
-              slotProps={{ input: { readOnly: true } }}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setView(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
       <Snackbar
         open={!!success}
         autoHideDuration={5000}
@@ -297,6 +248,18 @@ export default function WifiPage() {
         </Alert>
       </Snackbar>
     </>
+  );
+}
+function scheduleLabel(ssid: Ssid, schedules: Schedule[]) {
+  const config = ssid.wlanSchedule;
+  const enabled = config?.wlanScheduleEnable ?? ssid.wlanScheduleEnable;
+  if (!enabled) return "Always available";
+  const scheduleId = config?.scheduleId ?? ssid.scheduleId;
+  return (
+    config?.scheduleName ||
+    ssid.scheduleName ||
+    schedules.find((schedule) => schedule.profileId === scheduleId)?.name ||
+    "Scheduled"
   );
 }
 function CreateWifi({
@@ -553,7 +516,7 @@ function Toggle({
       )}
     />
   );
-} // eslint-disable-line @typescript-eslint/no-explicit-any
+}
 function PasswordDialog({
   ssid,
   onClose,
@@ -636,9 +599,11 @@ function ScheduleDialog({
   onClose: () => void;
   onSave: (e: boolean, s: Schedule | null, a: number) => void;
 }) {
-  const [enabled, setEnabled] = useState(true),
-    [id, setId] = useState(""),
-    [action, setAction] = useState(1);
+  const config = ssid?.wlanSchedule;
+  const [enabled, setEnabled] = useState(
+      config?.wlanScheduleEnable ?? ssid?.wlanScheduleEnable ?? false,
+    ),
+    [id, setId] = useState(config?.scheduleId ?? ssid?.scheduleId ?? "");
   const selected = schedules.find((x) => x.profileId === id) || null;
   return (
     <Dialog open={!!ssid} onClose={onClose} fullWidth maxWidth="xs">
@@ -665,17 +630,9 @@ function ScheduleDialog({
               ))}
             </Select>
           </FormControl>
-          <FormControl disabled={!enabled}>
-            <InputLabel>Action</InputLabel>
-            <Select
-              value={action}
-              onChange={(e) => setAction(Number(e.target.value))}
-              label="Action"
-            >
-              <MenuItem value={1}>WiFi ON during selected period</MenuItem>
-              <MenuItem value={0}>WiFi OFF during selected period</MenuItem>
-            </Select>
-          </FormControl>
+          {enabled && (
+            <Alert severity="info">WiFi will be on during the selected period.</Alert>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -685,7 +642,7 @@ function ScheduleDialog({
             <Button
               variant="contained"
               disabled={enabled && !selected}
-              onClick={() => onSave(enabled, selected, action)}
+              onClick={() => onSave(enabled, selected, 1)}
             >
               Save
             </Button>
