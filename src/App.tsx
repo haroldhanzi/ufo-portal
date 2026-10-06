@@ -24,10 +24,12 @@ import WifiIcon from "@mui/icons-material/WifiOutlined";
 import ScheduleIcon from "@mui/icons-material/ScheduleOutlined";
 import PortalIcon from "@mui/icons-material/LanguageOutlined";
 import VoucherIcon from "@mui/icons-material/ConfirmationNumberOutlined";
+import BlockIcon from "@mui/icons-material/BlockOutlined";
 import WifiPage from "./pages/WifiPage";
 import SchedulePage from "./pages/SchedulePage";
 import PortalPage from "./pages/PortalPage";
 import VoucherPage from "./pages/VoucherPage";
+import UrlFilterPage from "./pages/UrlFilterPage";
 import {
   ensureAccessToken,
   getSiteId,
@@ -40,6 +42,7 @@ const links = [
   ["Schedules", "/schedules", <ScheduleIcon />],
   ["Portals", "/portals", <PortalIcon />],
   ["Vouchers", "/vouchers", <VoucherIcon />],
+  ["Website Blacklists", "/blacklists", <BlockIcon />],
 ] as const;
 export default function App() {
   const [tokenOpen, setTokenOpen] = useState(true),
@@ -94,6 +97,7 @@ export default function App() {
               <Route path="/schedules" element={<SchedulePage />} />
               <Route path="/portals" element={<PortalPage />} />
               <Route path="/vouchers" element={<VoucherPage />} />
+              <Route path="/blacklists" element={<UrlFilterPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : (
@@ -124,6 +128,7 @@ function Dashboard() {
           ["Schedules", "Reusable access windows"],
           ["Portals", "Guest authentication"],
           ["Vouchers", "Controlled guest access"],
+          ["Website Blacklists", "Website access controls"],
         ].map(([a, b]) => (
           <Paper className="stat-card" key={a}>
             <div className="stat-label">{b}</div>

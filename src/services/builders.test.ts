@@ -6,6 +6,7 @@ import {
   buildCreateVoucherRequest,
   buildPasswordUpdate,
   buildPortalUpdate,
+  buildUrlFilterRequest,
 } from "./builders";
 import type { Portal, Ssid } from "../types/omada";
 
@@ -79,8 +80,34 @@ describe("Omada request builders", () => {
       vlanEnable: false,
     });
     expect(result.band).toBe(3);
+    expect(result.deviceType).toBe(11);
     expect(result).not.toHaveProperty("vlanId");
     expect(result).not.toHaveProperty("vlanSetting");
+  });
+
+  it("uses the documented gateway blacklist defaults", () => {
+    expect(
+      buildUrlFilterRequest({
+        name: "Social media",
+        status: true,
+        sourceIds: ["ssid-1"],
+        urls: ["example.com"],
+      }),
+    ).toEqual({
+      type: "gateway",
+      name: "Social media",
+      status: true,
+      policy: 0,
+      sourceType: 2,
+      sourceIds: ["ssid-1"],
+      mode: 0,
+      urls: ["example.com"],
+      keywords: [],
+      filterMode: 0,
+      scenarioMode: 0,
+      categories: {},
+      timeRange: "",
+    });
   });
 
   it("maps custom schedule days into time ranges", () => {

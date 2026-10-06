@@ -5,6 +5,7 @@ import type {
   Ssid,
   VoucherForm,
   WifiForm,
+  UrlFilterForm,
 } from "../types/omada";
 const time = (v: string) => {
   const [h, m] = v.split(":").map(Number);
@@ -14,7 +15,7 @@ export function buildCreateSsidRequest(f: WifiForm) {
   const band = f.bands.reduce((a, b) => a | b, 0);
   const request: Record<string, unknown> = {
     name: f.name,
-    deviceType: 3,
+    deviceType: 11,
     ssidEnable: true,
     chooseDevices: 0,
     apGroupIds: [],
@@ -43,6 +44,23 @@ export function buildCreateSsidRequest(f: WifiForm) {
       intervalPskType: 0,
     };
   return request;
+}
+export function buildUrlFilterRequest(form: UrlFilterForm) {
+  return {
+    type: "gateway",
+    name: form.name,
+    status: form.status,
+    policy: 0,
+    sourceType: 2,
+    sourceIds: form.sourceIds,
+    mode: 0,
+    urls: form.urls,
+    keywords: [],
+    filterMode: 0,
+    scenarioMode: 0,
+    categories: {},
+    timeRange: "",
+  };
 }
 export function buildPasswordUpdate(current: Ssid, password: string) {
   return {
@@ -128,14 +146,13 @@ export function buildCreatePortalRequest(f: PortalForm) {
 export function buildPortalUpdate(
   current: Portal,
   ssidList: string[],
-  portalCustomize: Record<string, unknown> =
-    current.portalCustomize ?? {
-      defaultLanguage: 1,
-      logoDisplay: true,
-      welcomeEnable: false,
-      termsOfServiceEnable: false,
-      copyrightEnable: false,
-    },
+  portalCustomize: Record<string, unknown> = current.portalCustomize ?? {
+    defaultLanguage: 1,
+    logoDisplay: true,
+    welcomeEnable: false,
+    termsOfServiceEnable: false,
+    copyrightEnable: false,
+  },
 ) {
   const authType = current.authType ?? 11;
   return {

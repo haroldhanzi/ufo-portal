@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  FormControlLabel,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -15,7 +14,6 @@ import {
   Select,
   Snackbar,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -28,7 +26,7 @@ import PageHeader from "../components/common/PageHeader";
 import { ApiErrorSnackbar, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
-import { HOTSPOT_AUTH, PORTAL_AUTH } from "../constants/omadaEnums";
+import { validatePartnerName } from "../constants/nameValidation";
 import type { Portal, PortalForm, Ssid } from "../types/omada";
 import {
   createPortal,
@@ -99,9 +97,11 @@ export default function PortalPage() {
         <Table>
           <TableHead>
             <TableRow>
-              {["Portal Name", "Associated WiFi Networks", "Actions"].map((x) => (
-                <TableCell key={x}>{x}</TableCell>
-              ))}
+              {["Portal Name", "Associated WiFi Networks", "Actions"].map(
+                (x) => (
+                  <TableCell key={x}>{x}</TableCell>
+                ),
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -203,7 +203,6 @@ function PortalDialog({
     control,
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<PortalForm>({
     defaultValues: {
@@ -216,7 +215,6 @@ function PortalDialog({
       httpsRedirectEnable: true,
     },
   });
-  const auth = watch("authType");
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <form onSubmit={handleSubmit(onSave)}>
@@ -225,24 +223,16 @@ function PortalDialog({
           <Stack spacing={2} mt={1}>
             <TextField
               label="Portal Name"
-              {...register("name", { required: "Portal name is required" })}
+              {...register("name", {
+                required: "Portal name is required",
+                maxLength: {
+                  value: 64,
+                  message: "Portal name cannot exceed 64 characters",
+                },
+                validate: validatePartnerName,
+              })}
               error={!!errors.name}
               helperText={errors.name?.message}
-            />
-            <Controller
-              name="enable"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  label="Enabled"
-                  control={
-                    <Switch
-                      checked={field.value}
-                      onChange={(_, v) => field.onChange(v)}
-                    />
-                  }
-                />
-              )}
             />
             <Controller
               name="ssidList"
@@ -279,73 +269,6 @@ function PortalDialog({
                   </Select>
                 </FormControl>
               )}
-            />
-            <Controller
-              name="authType"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <InputLabel>Authentication Type</InputLabel>
-                  <Select {...field} label="Authentication Type">
-                    {PORTAL_AUTH.map((x) => (
-                      <MenuItem key={x.value} value={x.value}>
-                        {x.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            />
-            {auth === 11 && (
-              <Controller
-                name="hotspotType"
-                control={control}
-                render={({ field }) => (
-                  <FormControl>
-                    <InputLabel>Hotspot Type</InputLabel>
-                    <Select {...field} label="Hotspot Type">
-                      {HOTSPOT_AUTH.map((x) => (
-                        <MenuItem key={x.value} value={x.value}>
-                          {x.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            )}
-            <Controller
-              name="landingPage"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <InputLabel>Landing Page</InputLabel>
-                  <Select {...field} label="Landing Page">
-                    <MenuItem value={1}>Promotion page</MenuItem>
-                    <MenuItem value={0}>Original URL</MenuItem>
-                  </Select>
-                </FormControl>
-              )}
-            />
-            <Controller
-              name="httpsRedirectEnable"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  label="HTTPS redirect"
-                  control={
-                    <Switch
-                      checked={field.value}
-                      onChange={(_, v) => field.onChange(v)}
-                    />
-                  }
-                />
-              )}
-            />
-            <TextField
-              label="Portal Appearance"
-              value="UFO default · English"
-              slotProps={{ input: { readOnly: true } }}
             />
           </Stack>
         </DialogContent>

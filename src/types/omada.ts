@@ -190,6 +190,35 @@ export interface PortalForm {
 export interface PortalAppearanceForm {
   logoDisplay: boolean;
 }
+export interface UrlFilter {
+  id: string;
+  index?: number;
+  type: "gateway" | "ap";
+  name: string;
+  status: boolean;
+  policy: number;
+  sourceType: number;
+  sourceIds: string[];
+  mode: number;
+  urls: string[];
+  keywords: string[];
+  filterMode: number;
+  scenarioMode?: number;
+  categories?: Record<string, unknown>;
+  timeRange?: string;
+}
+export interface UrlFilterGrid {
+  totalRows: number;
+  currentPage: number;
+  currentSize: number;
+  data: UrlFilter[];
+}
+export interface UrlFilterForm {
+  name: string;
+  status: boolean;
+  sourceIds: string[];
+  urls: string[];
+}
 export interface VoucherForm {
   name: string;
   amount: number;

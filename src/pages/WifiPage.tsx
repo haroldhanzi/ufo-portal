@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Box,
   Alert,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,7 +9,6 @@ import {
   FormControl,
   FormControlLabel,
   InputLabel,
-  ListItemText,
   MenuItem,
   Paper,
   Select,
@@ -26,20 +23,13 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
-import { Controller, useForm, type Control } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
 import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
-import {
-  BANDS,
-  bandLabel,
-  PMF_MODES,
-  WIFI_SECURITY,
-  WPA_VERSIONS,
-  ENCRYPTIONS,
-} from "../constants/omadaEnums";
 import type { Schedule, Ssid, WifiForm } from "../types/omada";
+import { validatePartnerName } from "../constants/nameValidation";
 import {
   assignSchedule,
   changePassword,
@@ -132,9 +122,11 @@ export default function WifiPage() {
         <Table>
           <TableHead>
             <TableRow>
-              {["WiFi Name", "Password", "Schedule", "Portal", "Actions"].map((x) => (
-                <TableCell key={x}>{x}</TableCell>
-              ))}
+              {["WiFi Name", "Password", "Schedule", "Portal", "Actions"].map(
+                (x) => (
+                  <TableCell key={x}>{x}</TableCell>
+                ),
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -272,24 +264,14 @@ function CreateWifi({
   onSave: (v: WifiForm) => void;
 }) {
   const {
-    control,
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors },
   } = useForm<WifiForm>({ defaultValues: defaults });
-  const security = watch("security"),
-    bands = watch("bands"),
-    vlan = watch("vlanEnable"),
-    six = bands.includes(4);
-  const submit = (v: WifiForm) => {
-    if (six && v.versionPsk !== 4) return;
-    onSave(v);
-  };
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <form onSubmit={handleSubmit(submit)}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <form onSubmit={handleSubmit(onSave)}>
         <DialogTitle>Create WiFi Network</DialogTitle>
         <DialogContent>
           <Stack spacing={2.2} mt={1}>
@@ -297,180 +279,37 @@ function CreateWifi({
               label="SSID Name"
               {...register("name", {
                 required: "SSID name is required",
-                validate: (v) =>
-                  new TextEncoder().encode(v).length <= 32 ||
-                  "Maximum 32 UTF-8 bytes",
+                validate: {
+                  length: (v) =>
+                    new TextEncoder().encode(v).length <= 32 ||
+                    "Maximum 32 UTF-8 bytes",
+                  reserved: validatePartnerName,
+                },
               })}
               error={!!errors.name}
               helperText={errors.name?.message}
             />
-            <Controller
-              name="bands"
-              control={control}
-              rules={{
-                validate: (v) => v.length > 0 || "Select at least one band",
-              }}
-              render={({ field, fieldState }) => (
-                <FormControl error={!!fieldState.error}>
-                  <InputLabel>Bands</InputLabel>
-                  <Select
-                    multiple
-                    label="Bands"
-                    value={field.value}
-                    onChange={field.onChange}
-                    renderValue={(v) =>
-                      bandLabel((v as number[]).reduce((a, b) => a | b, 0))
-                    }
-                  >
-                    {BANDS.map((x) => (
-                      <MenuItem key={x.value} value={x.value}>
-                        <Checkbox checked={field.value.includes(x.value)} />
-                        <ListItemText primary={x.label} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
+            <TextField
+              type="password"
+              label="Password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Use 8-63 printable ASCII characters",
+                },
+                maxLength: {
+                  value: 63,
+                  message: "Use 8-63 printable ASCII characters",
+                },
+                pattern: {
+                  value: /^[\x20-\x7E]+$/,
+                  message: "Use printable ASCII characters only",
+                },
+              })}
+              error={!!errors.password}
+              helperText={errors.password?.message}
             />
-            <Controller
-              name="security"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <InputLabel>Security</InputLabel>
-                  <Select {...field} label="Security">
-                    {WIFI_SECURITY.map((x) => (
-                      <MenuItem key={x.value} value={x.value}>
-                        {x.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            />
-            {security === 3 && (
-              <>
-                <TextField
-                  type="password"
-                  label="Password"
-                  {...register("password", {
-                    required: true,
-                    minLength: {
-                      value: 8,
-                      message: "Use 8–63 printable ASCII characters",
-                    },
-                    maxLength: {
-                      value: 63,
-                      message: "Use 8–63 printable ASCII characters",
-                    },
-                    pattern: {
-                      value: /^[\x20-\x7E]+$/,
-                      message: "Use printable ASCII characters only",
-                    },
-                  })}
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
-                />
-                <Controller
-                  name="versionPsk"
-                  control={control}
-                  rules={{
-                    validate: (v) =>
-                      !six || v === 4 || "6 GHz requires WPA2/WPA3",
-                  }}
-                  render={({ field, fieldState }) => (
-                    <FormControl error={!!fieldState.error}>
-                      <InputLabel>WPA version</InputLabel>
-                      <Select {...field} label="WPA version">
-                        {WPA_VERSIONS.map((x) => (
-                          <MenuItem key={x.value} value={x.value}>
-                            {x.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {fieldState.error && (
-                        <Box
-                          sx={{ color: "error.main", fontSize: 12, mt: 0.5 }}
-                        >
-                          {fieldState.error.message}
-                        </Box>
-                      )}
-                    </FormControl>
-                  )}
-                />
-                <Controller
-                  name="encryptionPsk"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControl>
-                      <InputLabel>Encryption</InputLabel>
-                      <Select {...field} label="Encryption">
-                        {ENCRYPTIONS.map((x) => (
-                          <MenuItem key={x.value} value={x.value}>
-                            {x.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
-                />
-              </>
-            )}
-            <Controller
-              name="pmfMode"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <InputLabel>Protected management frames</InputLabel>
-                  <Select {...field} label="Protected management frames">
-                    {PMF_MODES.map((x) => (
-                      <MenuItem key={x.value} value={x.value}>
-                        {x.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            />
-            <Stack direction="row" flexWrap="wrap" gap={1}>
-              <Toggle
-                control={control}
-                name="guestNetEnable"
-                label="Guest network"
-              />
-              <Toggle
-                control={control}
-                name="broadcast"
-                label="Broadcast SSID"
-              />
-              <Toggle control={control} name="enable11r" label="802.11r" />
-              <Toggle
-                control={control}
-                name="prohibitWifiShare"
-                label="Prohibit WiFi sharing"
-              />
-              <Toggle
-                control={control}
-                name="vlanEnable"
-                label="VLAN enabled"
-              />
-            </Stack>
-            {vlan && (
-              <TextField
-                type="number"
-                label="VLAN ID"
-                {...register("vlanId", {
-                  valueAsNumber: true,
-                  required: true,
-                  min: 1,
-                  max: 4094,
-                })}
-                error={!!errors.vlanId}
-                helperText={
-                  errors.vlanId ? "Enter a VLAN ID from 1 to 4094" : ""
-                }
-              />
-            )}
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -488,33 +327,6 @@ function CreateWifi({
         </DialogActions>
       </form>
     </Dialog>
-  );
-}
-function Toggle({
-  control,
-  name,
-  label,
-}: {
-  control: Control<WifiForm>;
-  name: keyof WifiForm;
-  label: string;
-}) {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field }) => (
-        <FormControlLabel
-          label={label}
-          control={
-            <Switch
-              checked={!!field.value}
-              onChange={(_, v) => field.onChange(v)}
-            />
-          }
-        />
-      )}
-    />
   );
 }
 function PasswordDialog({
@@ -631,7 +443,9 @@ function ScheduleDialog({
             </Select>
           </FormControl>
           {enabled && (
-            <Alert severity="info">WiFi will be on during the selected period.</Alert>
+            <Alert severity="info">
+              WiFi will be on during the selected period.
+            </Alert>
           )}
         </Stack>
       </DialogContent>

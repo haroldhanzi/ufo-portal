@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Button,
   Checkbox,
   Dialog,
@@ -24,6 +25,7 @@ import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
 import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
 import { DAY_MODES, DAYS, labelFor } from "../constants/omadaEnums";
+import { validatePartnerName } from "../constants/nameValidation";
 import { createSchedule, listSchedules } from "../services/scheduleService";
 import type { Schedule, ScheduleForm } from "../types/omada";
 const times = Array.from(
@@ -73,17 +75,18 @@ export default function SchedulePage() {
         onAdd={() => setOpen(true)}
         onRefresh={load}
       />
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Unassigned schedules will be automatically deleted after some time.
+      </Alert>
       <ApiErrorAlert error={error} />
       <Loading show={loading} />
       <Paper className="table-wrap">
         <Table>
           <TableHead>
             <TableRow>
-              {["Schedule Name", "Days", "Time Range"].map(
-                (x) => (
-                  <TableCell key={x}>{x}</TableCell>
-                ),
-              )}
+              {["Schedule Name", "Days", "Time Range"].map((x) => (
+                <TableCell key={x}>{x}</TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -159,7 +162,11 @@ function CreateSchedule({
               {...register("name", {
                 required: "Schedule name is required",
                 minLength: 1,
-                maxLength: 64,
+                maxLength: {
+                  value: 64,
+                  message: "Schedule name cannot exceed 64 characters",
+                },
+                validate: validatePartnerName,
               })}
               error={!!errors.name}
               helperText={errors.name?.message}
