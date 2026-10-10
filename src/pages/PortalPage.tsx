@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Button,
   Checkbox,
   Dialog,
@@ -164,9 +165,17 @@ export default function PortalPage() {
       {editingAppearance && (
         <AppearanceDialog
           portal={editingAppearance}
+          busy={loading}
           onClose={() => setEditingAppearance(null)}
-          onSave={(logoDisplay) =>
-            act(() => updatePortalAppearance(editingAppearance, logoDisplay))
+          onSave={(logoDisplay, welcomeInformation, backgroundFile) =>
+            act(() =>
+              updatePortalAppearance(
+                editingAppearance,
+                logoDisplay,
+                welcomeInformation,
+                backgroundFile,
+              ),
+            )
           }
         />
       )}
@@ -335,34 +344,98 @@ function AssociationDialog({
 
 function AppearanceDialog({
   portal,
+  busy,
   onClose,
   onSave,
 }: {
   portal: Portal;
+  busy: boolean;
   onClose: () => void;
-  onSave: (logoDisplay: boolean) => void;
+  onSave: (
+    logoDisplay: boolean,
+    welcomeInformation: string,
+    backgroundFile?: File,
+  ) => void;
 }) {
   const currentLogoDisplay = portal.portalCustomize?.logoDisplay !== false;
   const [logo, setLogo] = useState(currentLogoDisplay ? "default" : "none");
+  const [backgroundFile, setBackgroundFile] = useState<File>();
+  const [preview, setPreview] = useState("");
+  const [fileError, setFileError] = useState("");
+  useEffect(() => {
+    if (preview) return () => URL.revokeObjectURL(preview);
+  }, [preview]);
+  const [welcomeInformation, setWelcomeInformation] = useState(
+    typeof portal.portalCustomize?.welcomeInformation === "string"
+      ? portal.portalCustomize.welcomeInformation
+      : "",
+  );
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open onClose={busy ? undefined : onClose} fullWidth maxWidth="sm">
       <DialogTitle>Edit Portal Appearance</DialogTitle>
       <DialogContent>
         <Stack spacing={3} mt={1}>
-          <FormControl>
-            <InputLabel>Background</InputLabel>
-            <Select value="default" label="Background">
-              <MenuItem value="default">Use default UFO background</MenuItem>
-              <MenuItem value="upload" disabled>
-                Upload a new background - API upload support required
-              </MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            label="Welcome text"
+            value={welcomeInformation}
+            onChange={(event) => setWelcomeInformation(event.target.value)}
+            multiline
+            minRows={3}
+            disabled={busy}
+            helperText="Shown on the portal login page. Leave blank to hide the welcome message."
+          />
+          <Stack spacing={1}>
+            <Button component="label" variant="outlined" disabled={busy}>
+              Choose background image
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (!file) return;
+                  if (!file.type.startsWith("image/") || file.size === 0) {
+                    setFileError("Choose a non-empty image file.");
+                    return;
+                  }
+                  setFileError("");
+                  setBackgroundFile(file);
+                  setPreview(URL.createObjectURL(file));
+                }}
+              />
+            </Button>
+            {fileError && <Alert severity="error">{fileError}</Alert>}
+            {preview && (
+              <>
+                <img
+                  src={preview}
+                  alt="Selected portal background"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: 220,
+                    objectFit: "contain",
+                  }}
+                />
+                <Button
+                  disabled={busy}
+                  onClick={() => {
+                    setBackgroundFile(undefined);
+                    setPreview("");
+                    setFileError("");
+                  }}
+                >
+                  Clear selection
+                </Button>
+              </>
+            )}
+          </Stack>
           <FormControl>
             <InputLabel>Logo</InputLabel>
             <Select
               value={logo}
               label="Logo"
+              disabled={busy}
               onChange={(event) => setLogo(event.target.value)}
             >
               <MenuItem value="none">Do not use a logo</MenuItem>
@@ -375,9 +448,17 @@ function AppearanceDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={() => onSave(logo === "default")}>
-          Save changes
+        <Button onClick={onClose} disabled={busy}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          disabled={busy}
+          onClick={() =>
+            onSave(logo === "default", welcomeInformation, backgroundFile)
+          }
+        >
+          {busy ? "Saving..." : "Save changes"}
         </Button>
       </DialogActions>
     </Dialog>

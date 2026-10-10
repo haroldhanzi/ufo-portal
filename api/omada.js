@@ -1,3 +1,5 @@
+export const config = { api: { bodyParser: false } };
+
 function getOmadaOrigin() {
   const configuredOrigin =
     process.env.OMADA_BASE_URL ||
@@ -36,7 +38,9 @@ export default async function handler(request, response) {
 
   if (!["GET", "POST", "PATCH", "DELETE"].includes(request.method)) {
     response.setHeader("Allow", "GET, POST, PATCH, DELETE, OPTIONS");
-    return response.status(405).json({ errorCode: -1, msg: "Method not allowed." });
+    return response
+      .status(405)
+      .json({ errorCode: -1, msg: "Method not allowed." });
   }
 
   const omadaOrigin = getOmadaOrigin();
@@ -48,24 +52,40 @@ export default async function handler(request, response) {
   }
 
   const pathValue = request.query.upstreamPath;
-  const upstreamPath = Array.isArray(pathValue) ? pathValue.join("/") : pathValue;
+  const upstreamPath = Array.isArray(pathValue)
+    ? pathValue.join("/")
+    : pathValue;
   if (!upstreamPath) {
-    return response.status(400).json({ errorCode: -1, msg: "Missing Omada API path." });
+    return response
+      .status(400)
+      .json({ errorCode: -1, msg: "Missing Omada API path." });
   }
 
   const upstreamUrl = new URL(`/${upstreamPath}`, omadaOrigin);
   appendQuery(upstreamUrl, request.query);
-  const headers = { "Content-Type": "application/json" };
-  if (request.headers.authorization) headers.Authorization = request.headers.authorization;
+  const headers = {
+    "Content-Type": request.headers["content-type"] || "application/json",
+  };
+  if (request.headers.authorization)
+    headers.Authorization = request.headers.authorization;
 
   const hasBody = !["GET", "HEAD"].includes(request.method);
-  const body = hasBody
-    ? typeof request.body === "string"
-      ? request.body
-      : JSON.stringify(request.body ?? {})
-    : undefined;
-
   try {
+    let body;
+    if (hasBody) {
+      if (request.body !== undefined) {
+        body =
+          Buffer.isBuffer(request.body) || typeof request.body === "string"
+            ? request.body
+            : JSON.stringify(request.body);
+      } else {
+        const chunks = [];
+        for await (const chunk of request) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        body = Buffer.concat(chunks);
+      }
+    }
     const upstream = await fetch(upstreamUrl, {
       method: request.method,
       headers,
