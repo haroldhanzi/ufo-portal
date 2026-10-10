@@ -72,8 +72,8 @@ export interface Portal {
 export interface VoucherGroup {
   id: string;
   name: string;
-  createTime?: number;
-  creator?: string;
+  createdTime?: number;
+  creatorName?: string;
   limitType: number;
   limitNum?: number;
   durationType: number;
@@ -81,10 +81,11 @@ export interface VoucherGroup {
   trafficLimitEnable: boolean;
   trafficLimit?: number;
   portals?: string[];
+  portalNames?: string[];
   validityType: number;
-  used?: number;
-  unused?: number;
-  expired?: number;
+  usedCount?: number;
+  unusedCount?: number;
+  expiredCount?: number;
 }
 export interface SimpleVoucher {
   id: string;

@@ -129,7 +129,12 @@ export default function VoucherPage() {
     }
   };
   const portalName = (r: VoucherGroup) =>
-    portals.find((p) => r.portals?.includes(p.id || p.portalId!))?.name || "—";
+    r.portalNames?.join(", ") ||
+    portals
+      .filter((p) => r.portals?.includes(p.id || p.portalId!))
+      .map((p) => p.name)
+      .join(", ") ||
+    "—";
   return (
     <>
       <PageHeader
@@ -223,11 +228,11 @@ export default function VoucherPage() {
                   <b>{r.name}</b>
                 </TableCell>
                 <TableCell>
-                  {r.createTime
-                    ? new Date(r.createTime).toLocaleDateString()
+                  {r.createdTime
+                    ? new Date(r.createdTime).toLocaleDateString()
                     : "—"}
                 </TableCell>
-                <TableCell>{r.creator || "—"}</TableCell>
+                <TableCell>{r.creatorName || "—"}</TableCell>
                 <TableCell>
                   {labelFor(VOUCHER_LIMIT_TYPES, r.limitType)}
                 </TableCell>
@@ -239,9 +244,9 @@ export default function VoucherPage() {
                 <TableCell>
                   {labelFor(VALIDITY_TYPES, r.validityType)}
                 </TableCell>
-                <TableCell>{r.used ?? 0}</TableCell>
-                <TableCell>{r.unused ?? 0}</TableCell>
-                <TableCell>{r.expired ?? 0}</TableCell>
+                <TableCell>{r.usedCount ?? "—"}</TableCell>
+                <TableCell>{r.unusedCount ?? "—"}</TableCell>
+                <TableCell>{r.expiredCount ?? "—"}</TableCell>
                 <TableCell>
                   <ActionsMenu
                     label={`Actions for ${r.name}`}
