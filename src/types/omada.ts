@@ -74,6 +74,7 @@ export interface VoucherGroup {
   name: string;
   createdTime?: number;
   creatorName?: string;
+  expirationTime?: number;
   limitType: number;
   limitNum?: number;
   durationType: number;

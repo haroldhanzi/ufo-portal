@@ -24,6 +24,31 @@ const portal = {
 } as Portal;
 
 describe("portal appearance saving", () => {
+  it("uploads a logo and saves its picture ID without changing the background", async () => {
+    vi.mocked(api.post).mockResolvedValue({
+      data: { result: { id: "new-logo" } },
+    });
+    await updatePortalAppearance(
+      portal,
+      true,
+      "",
+      undefined,
+      new Blob(["logo"], { type: "image/png" }) as File,
+    );
+    expect(vi.mocked(api.post).mock.calls[0][2]?.params).toEqual({
+      type: "logo",
+    });
+    expect(api.patch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        portalCustomize: expect.objectContaining({
+          logoPictureId: "new-logo",
+          logoDisplay: true,
+          backgroundPictureId: "old-picture",
+        }),
+      }),
+    );
+  });
   beforeEach(() => {
     vi.resetAllMocks();
   });

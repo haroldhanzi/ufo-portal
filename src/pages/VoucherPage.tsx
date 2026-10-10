@@ -243,6 +243,11 @@ export default function VoucherPage() {
                 <TableCell>{portalName(r)}</TableCell>
                 <TableCell>
                   {labelFor(VALIDITY_TYPES, r.validityType)}
+                  {r.expirationTime && Number.isFinite(r.expirationTime) ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Expires: {new Date(r.expirationTime).toLocaleDateString()}
+                    </Typography>
+                  ) : null}
                 </TableCell>
                 <TableCell>{r.usedCount ?? "—"}</TableCell>
                 <TableCell>{r.unusedCount ?? "—"}</TableCell>

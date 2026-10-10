@@ -24,13 +24,18 @@ export async function updatePortalAppearance(
   logoDisplay: boolean,
   welcomeInformation: string,
   backgroundFile?: File,
+  logoFile?: File,
 ) {
   const backgroundPicture = backgroundFile
     ? await uploadPortalBackground(backgroundFile)
     : undefined;
+  const logoPicture = logoFile
+    ? await uploadPortalPicture(logoFile, "logo")
+    : undefined;
   const portalCustomize = {
     ...(portal.portalCustomize ?? {}),
     ...(backgroundPicture ? { backgroundPictureId: backgroundPicture.id } : {}),
+    ...(logoPicture ? { logoPictureId: logoPicture.id } : {}),
     defaultLanguage: portal.portalCustomize?.defaultLanguage ?? 1,
     logoDisplay,
     welcomeEnable: welcomeInformation.trim().length > 0,
@@ -44,20 +49,26 @@ export async function updatePortalAppearance(
   );
 }
 export async function uploadPortalBackground(file: File) {
+  return uploadPortalPicture(file, "background");
+}
+export async function uploadPortalPicture(
+  file: File,
+  type: "background" | "logo",
+) {
   requireConfig();
   if (!file.type.startsWith("image/") || file.size === 0) {
-    throw new OmadaError("Choose a non-empty image file for the background.");
+    throw new OmadaError(`Choose a non-empty image file for the ${type}.`);
   }
   const form = new FormData();
   form.append("file", file);
   const { data } = await api.post<
     OmadaEnvelope<{ id: string; fileName: string; url: string }>
   >(`${sitePath()}/portal/pics`, form, {
-    params: { type: "background" },
+    params: { type },
     headers: { "Content-Type": undefined },
   });
   if (!data.result?.id) {
-    throw new OmadaError("Omada did not return a background picture ID.");
+    throw new OmadaError(`Omada did not return a ${type} picture ID.`);
   }
   return data.result;
 }

@@ -21,6 +21,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
@@ -167,13 +168,14 @@ export default function PortalPage() {
           portal={editingAppearance}
           busy={loading}
           onClose={() => setEditingAppearance(null)}
-          onSave={(logoDisplay, welcomeInformation, backgroundFile) =>
+          onSave={(logoDisplay, welcomeInformation, backgroundFile, logoFile) =>
             act(() =>
               updatePortalAppearance(
                 editingAppearance,
                 logoDisplay,
                 welcomeInformation,
                 backgroundFile,
+                logoFile,
               ),
             )
           }
@@ -355,16 +357,24 @@ function AppearanceDialog({
     logoDisplay: boolean,
     welcomeInformation: string,
     backgroundFile?: File,
+    logoFile?: File,
   ) => void;
 }) {
   const currentLogoDisplay = portal.portalCustomize?.logoDisplay !== false;
   const [logo, setLogo] = useState(currentLogoDisplay ? "default" : "none");
   const [backgroundFile, setBackgroundFile] = useState<File>();
   const [preview, setPreview] = useState("");
+  const [dimensions, setDimensions] = useState("");
+  const [logoFile, setLogoFile] = useState<File>();
+  const [logoPreview, setLogoPreview] = useState("");
+  const [logoError, setLogoError] = useState("");
   const [fileError, setFileError] = useState("");
   useEffect(() => {
     if (preview) return () => URL.revokeObjectURL(preview);
   }, [preview]);
+  useEffect(() => {
+    if (logoPreview) return () => URL.revokeObjectURL(logoPreview);
+  }, [logoPreview]);
   const [welcomeInformation, setWelcomeInformation] = useState(
     typeof portal.portalCustomize?.welcomeInformation === "string"
       ? portal.portalCustomize.welcomeInformation
@@ -385,6 +395,10 @@ function AppearanceDialog({
             helperText="Shown on the portal login page. Leave blank to hide the welcome message."
           />
           <Stack spacing={1}>
+            <Typography variant="body2" color="text.secondary">
+              Background size references: portrait 816 × 1024 px; landscape 1129
+              × 973 px.
+            </Typography>
             <Button component="label" variant="outlined" disabled={busy}>
               Choose background image
               <input
@@ -401,6 +415,7 @@ function AppearanceDialog({
                   }
                   setFileError("");
                   setBackgroundFile(file);
+                  setDimensions("");
                   setPreview(URL.createObjectURL(file));
                 }}
               />
@@ -411,17 +426,26 @@ function AppearanceDialog({
                 <img
                   src={preview}
                   alt="Selected portal background"
+                  onLoad={(event) =>
+                    setDimensions(
+                      `${event.currentTarget.naturalWidth} × ${event.currentTarget.naturalHeight} px`,
+                    )
+                  }
                   style={{
                     maxWidth: "100%",
                     maxHeight: 220,
                     objectFit: "contain",
                   }}
                 />
+                <Typography variant="body2">
+                  {backgroundFile?.name} · {dimensions}
+                </Typography>
                 <Button
                   disabled={busy}
                   onClick={() => {
                     setBackgroundFile(undefined);
                     setPreview("");
+                    setDimensions("");
                     setFileError("");
                   }}
                 >
@@ -439,12 +463,59 @@ function AppearanceDialog({
               onChange={(event) => setLogo(event.target.value)}
             >
               <MenuItem value="none">Do not use a logo</MenuItem>
-              <MenuItem value="default">Use default UFO logo</MenuItem>
-              <MenuItem value="upload" disabled>
-                Upload a new logo - API upload support required
-              </MenuItem>
+              <MenuItem value="default">Keep current logo</MenuItem>
+              <MenuItem value="upload">Upload a new logo</MenuItem>
             </Select>
           </FormControl>
+          {logo === "upload" && (
+            <Stack spacing={1}>
+              <Button component="label" variant="outlined" disabled={busy}>
+                Choose logo image
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    event.target.value = "";
+                    if (!file) return;
+                    if (!file.type.startsWith("image/") || file.size === 0) {
+                      setLogoError("Choose a non-empty image file.");
+                      return;
+                    }
+                    setLogoError("");
+                    setLogoFile(file);
+                    setLogoPreview(URL.createObjectURL(file));
+                  }}
+                />
+              </Button>
+              {logoError && <Alert severity="error">{logoError}</Alert>}
+              {logoPreview && (
+                <>
+                  <img
+                    src={logoPreview}
+                    alt="Selected portal logo"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: 120,
+                      objectFit: "contain",
+                    }}
+                  />
+                  <Typography variant="body2">{logoFile?.name}</Typography>
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      setLogoFile(undefined);
+                      setLogoPreview("");
+                      setLogoError("");
+                    }}
+                  >
+                    Clear selection
+                  </Button>
+                </>
+              )}
+            </Stack>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>
@@ -453,9 +524,14 @@ function AppearanceDialog({
         </Button>
         <Button
           variant="contained"
-          disabled={busy}
+          disabled={busy || (logo === "upload" && !logoFile)}
           onClick={() =>
-            onSave(logo === "default", welcomeInformation, backgroundFile)
+            onSave(
+              logo !== "none",
+              welcomeInformation,
+              backgroundFile,
+              logo === "upload" ? logoFile : undefined,
+            )
           }
         >
           {busy ? "Saving..." : "Save changes"}
