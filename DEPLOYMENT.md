@@ -46,3 +46,7 @@ docker compose --env-file .env.docker up -d
 Nginx's `/health` confirms frontend readiness. Spring `/actuator/health` is checked inside its container and includes MySQL connectivity. Compose waits for MySQL, then Spring, then the frontend. Image builds run frontend compilation and backend tests. Use HTTPS at the deployment ingress for credentials and bearer traffic.
 
 Hardware discovery and status polling use the supplied @25 endpoint automatically across accessible sites. The @26 reboot endpoint is configured and uses a hyphenated MAC. Only recent connected hardware can be rebooted. Blank notification delivery configuration leaves alerts PENDING; configure your email/SMS delivery service to deliver them.
+
+## Source checkouts for builds
+
+Clone `haroldhanzi/ufo-backend-core` beside `ufo-portal` before building locally. Both `compose.yml` and `compose.images.yml` use `../ufo-backend-core` as the backend build context; set `BACKEND_CONTEXT` to override it. Image names and the image-only server deployment remain unchanged.

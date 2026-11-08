@@ -4,7 +4,6 @@ dist
 .git
 .env
 .env.*
-backend
 docs
 data
 *.tsbuildinfo

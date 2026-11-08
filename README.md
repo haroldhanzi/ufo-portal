@@ -6,10 +6,21 @@ React/TypeScript frontend with a Spring Boot security, user-management, Omada pr
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for the full React + Spring Boot + MySQL stack, local database-folder persistence, super-administrator bootstrap, and site-scoped partner accounts.
 
+## Separate repositories
+
+The Spring Boot backend lives in [ufo-backend-core](https://github.com/haroldhanzi/ufo-backend-core). Clone both repositories into the same parent folder:
+
+```sh
+git clone https://github.com/haroldhanzi/ufo-portal.git
+git clone https://github.com/haroldhanzi/ufo-backend-core.git
+```
+
+Docker builds use `../ufo-backend-core` by default. Set `BACKEND_CONTEXT` to another checkout path if needed. The browser and proxies continue to use the same HTTP API.
+
 ## Local setup
 
-1. Provision MySQL and configure Spring using [backend/.env.example](backend/.env.example). See [backend/README.md](backend/README.md) for database/administrator setup and Docker Compose.
-2. Run Spring: `cd backend` then `.\mvnw.cmd spring-boot:run` (Windows) or `sh mvnw spring-boot:run` (Linux/macOS).
+1. Provision MySQL and configure Spring using [ufo-backend-core/.env.example](https://github.com/haroldhanzi/ufo-backend-core/blob/main/.env.example). See [backend setup](https://github.com/haroldhanzi/ufo-backend-core#readme) for database/administrator setup and Docker Compose.
+2. Run Spring: `cd ../ufo-backend-core` then `.\mvnw.cmd spring-boot:run` (Windows) or `sh mvnw spring-boot:run` (Linux/macOS).
 3. At the repository root, run `npm install` then `npm run dev`.
 4. Open `http://localhost:5173` and sign in with your user email and password. No Omada setup dialog or token input is required.
 
@@ -27,4 +38,4 @@ Alternatively use a same-origin reverse proxy or set `VITE_BACKEND_BASE_URL` to 
 
 ## Validation
 
-`npm run build`, `npm test`, and `npm run lint`; backend: `cd backend` then `.\mvnw.cmd verify` (or `sh mvnw verify`). Tests use isolated H2 databases in MySQL compatibility mode; runtime uses MySQL. Install dependencies separately on Windows and Linux rather than sharing platform-specific `node_modules`.
+`npm run build`, `npm test`, and `npm run lint`; backend: `cd ../ufo-backend-core` then `.\mvnw.cmd verify` (or `sh mvnw verify`). Tests use isolated H2 databases in MySQL compatibility mode; runtime uses MySQL. Install dependencies separately on Windows and Linux rather than sharing platform-specific `node_modules`.

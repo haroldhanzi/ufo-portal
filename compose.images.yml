@@ -10,5 +10,5 @@ services:
     image: ${DOCKERHUB_NAMESPACE:-thewiseone}/ufo-backend:${IMAGE_TAG:?Set IMAGE_TAG}
     platform: linux/amd64
     build:
-      context: ./backend
+      context: ${BACKEND_CONTEXT:-../ufo-backend-core}
       dockerfile: Dockerfile

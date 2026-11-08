@@ -62,3 +62,7 @@ docker compose --env-file .env.server -f compose.server.yml down
 Container replacement and `down` preserve `/srv/ufo/mysql`. Keep this folder and `.env.server` across deployments. Schedule database-aware backups; persistence on one server is not a backup. MySQL initialization passwords apply only to a new data directory; existing accounts require an SQL password change as well.
 
 The root `compose.yml` remains the local development stack. Use `compose.server.yml` on this server to avoid publishing the development database port.
+
+## Source checkouts for builds
+
+Clone `haroldhanzi/ufo-backend-core` beside `ufo-portal` before building locally. Both `compose.yml` and `compose.images.yml` use `../ufo-backend-core` as the backend build context; set `BACKEND_CONTEXT` to override it. Image names and the image-only server deployment remain unchanged.

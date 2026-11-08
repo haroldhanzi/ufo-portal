@@ -14,7 +14,7 @@ services:
       - application
   backend:
     build:
-      context: ./backend
+      context: ${BACKEND_CONTEXT:-../ufo-backend-core}
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
