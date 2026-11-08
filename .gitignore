@@ -5,3 +5,10 @@ dist/
 vite.config.js
 vite.config.d.ts
 *.tsbuildinfo
+backend/target/
+backend/data/
+backend/.mvn/wrapper/maven-wrapper.jar
+data/
+.tools/
+.env.docker
+.env.server

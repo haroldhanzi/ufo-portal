@@ -1,9 +1,9 @@
 {
   "routes": [
     {
-      "src": "/api/omada/(.*)",
-      "methods": ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-      "dest": "/api/omada?upstreamPath=$1"
+      "src": "/backend-api/(.*)",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      "dest": "/api/backend?upstreamPath=$1"
     },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }

@@ -25,7 +25,7 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
 import type { Schedule, Ssid, WifiForm } from "../types/omada";
@@ -116,9 +116,14 @@ export default function WifiPage() {
         onAdd={() => setCreateOpen(true)}
         onRefresh={load}
       />
-      <ApiErrorAlert error={error} />
+      <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
-      <Paper className="table-wrap">
+      <Paper
+        className="table-wrap"
+        role="region"
+        aria-label="WiFi networks table"
+        tabIndex={0}
+      >
         <Table>
           <TableHead>
             <TableRow>

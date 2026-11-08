@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import ActionsMenu from "../components/common/ActionsMenu";
-import { ApiErrorSnackbar, Loading } from "../components/common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import PageHeader from "../components/common/PageHeader";
 import { listSsids } from "../services/ssidService";
@@ -134,9 +134,14 @@ export default function UrlFilterPage() {
         }}
         onRefresh={load}
       />
-      <ApiErrorSnackbar error={error} onClose={() => setError(undefined)} />
+      <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
-      <Paper className="table-wrap">
+      <Paper
+        className="table-wrap"
+        role="region"
+        aria-label="Website blacklists table"
+        tabIndex={0}
+      >
         <Table>
           <TableHead>
             <TableRow>

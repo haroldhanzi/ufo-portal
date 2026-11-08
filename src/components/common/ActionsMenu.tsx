@@ -37,6 +37,8 @@ export default function ActionsMenu({
           aria-label={label}
           aria-controls={anchor ? menuId : undefined}
           aria-haspopup="menu"
+          aria-expanded={!!anchor}
+          disabled={items.length === 0 || items.every((item) => item.disabled)}
           onClick={open}
         >
           <SettingsOutlinedIcon fontSize="small" />

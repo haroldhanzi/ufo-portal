@@ -25,11 +25,7 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import {
-  ApiErrorAlert,
-  ApiErrorSnackbar,
-  Loading,
-} from "../components/common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import VoucherGroupDetailDialog from "../components/vouchers/VoucherGroupDetailDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
@@ -176,7 +172,7 @@ export default function VoucherPage() {
           />
         )}
       </Paper>
-      <ApiErrorSnackbar
+      <ApiErrorDialog
         error={voucherError}
         onClose={() => setVoucherError(undefined)}
       />
@@ -197,9 +193,14 @@ export default function VoucherPage() {
           sx={{ width: 300 }}
         />
       </Stack>
-      <ApiErrorAlert error={error} />
+      <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
-      <Paper className="table-wrap">
+      <Paper
+        className="table-wrap"
+        role="region"
+        aria-label="Voucher groups table"
+        tabIndex={0}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -214,7 +215,6 @@ export default function VoucherPage() {
                 "Validity",
                 "Used",
                 "Unused",
-                "Expired",
                 "Actions",
               ].map((x) => (
                 <TableCell key={x}>{x}</TableCell>
@@ -251,7 +251,6 @@ export default function VoucherPage() {
                 </TableCell>
                 <TableCell>{r.usedCount ?? "—"}</TableCell>
                 <TableCell>{r.unusedCount ?? "—"}</TableCell>
-                <TableCell>{r.expiredCount ?? "—"}</TableCell>
                 <TableCell>
                   <ActionsMenu
                     label={`Actions for ${r.name}`}
@@ -268,7 +267,7 @@ export default function VoucherPage() {
             {!rows.length && !loading && (
               <TableRow>
                 <TableCell
-                  colSpan={12}
+                  colSpan={11}
                   align="center"
                   sx={{ py: 6, color: "text.secondary" }}
                 >

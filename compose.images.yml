@@ -1,0 +1,14 @@
+# Build and publish on the development machine. The server uses compose.server.yml.
+services:
+  frontend:
+    image: ${DOCKERHUB_NAMESPACE:-thewiseone}/ufo-frontend:${IMAGE_TAG:?Set IMAGE_TAG}
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+  backend:
+    image: ${DOCKERHUB_NAMESPACE:-thewiseone}/ufo-backend:${IMAGE_TAG:?Set IMAGE_TAG}
+    platform: linux/amd64
+    build:
+      context: ./backend
+      dockerfile: Dockerfile

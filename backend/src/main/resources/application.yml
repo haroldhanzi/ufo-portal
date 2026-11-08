@@ -1,0 +1,45 @@
+server:
+  port: ${PORT:8080}
+spring:
+  servlet:
+    multipart:
+      enabled: false
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/ufo_portal?connectionTimeZone=UTC}
+    username: ${DATABASE_USERNAME:ufo}
+    password: ${DATABASE_PASSWORD:}
+  jpa:
+    properties:
+      hibernate.jdbc.time_zone: UTC
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+app:
+  session-seconds: ${USER_SESSION_SECONDS:28800}
+  admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
+  admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+monitoring:
+  api-key: ${MONITORING_API_KEY:}
+  cors-origin: ${MONITORING_CORS_ORIGIN:http://localhost:5173}
+  tick-ms: ${MONITORING_TICK_MS:30000}
+  stale-seconds: ${MONITORING_STALE_SECONDS:180}
+  delivery-url: ${NOTIFICATION_DELIVERY_URL:}
+  delivery-token: ${NOTIFICATION_DELIVERY_TOKEN:}
+omada:
+  site-id: ${OMADA_SITE_ID:}
+  site-name: ${OMADA_SITE_NAME:UFO Location}
+  base-url: ${OMADA_BASE_URL:https://euw1-omada-northbound.tplinkcloud.com}
+  controller-id: ${OMADA_CONTROLLER_ID:}
+  client-id: ${OMADA_CLIENT_ID:}
+  client-secret: ${OMADA_CLIENT_SECRET:}
+  devices-path: ${OMADA_DEVICES_PATH:/openapi/v1/{omadacId}/sites/{siteId}/devices}
+  reboot-path: ${OMADA_REBOOT_PATH:/openapi/v1/{omadacId}/sites/{siteId}/devices/{deviceMac}/reboot}
+  reboot-method: ${OMADA_REBOOT_METHOD:POST}
+  state-field: ${OMADA_STATE_FIELD:status}
+  connected-value: ${OMADA_CONNECTED_VALUE:1}
+  disconnected-value: ${OMADA_DISCONNECTED_VALUE:0}

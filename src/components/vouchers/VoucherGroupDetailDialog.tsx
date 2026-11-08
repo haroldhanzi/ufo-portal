@@ -20,7 +20,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { ApiErrorAlert, Loading } from "../common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../common/ApiFeedback";
 import ConfirmDialog from "../common/ConfirmDialog";
 import ActionsMenu from "../common/ActionsMenu";
 import type { VoucherGroup, VoucherGroupDetail } from "../../types/omada";
@@ -152,7 +152,7 @@ export default function VoucherGroupDetailDialog({
               Delete selected ({selected.length})
             </Button>
           </Stack>
-          <ApiErrorAlert error={error} />
+          <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
           <Loading show={loading} />
           {detail && (
             <Typography color="text.secondary" sx={{ mb: 1 }}>
@@ -160,7 +160,12 @@ export default function VoucherGroupDetailDialog({
               {detail.inUseCount} in use · {detail.expiredCount} expired
             </Typography>
           )}
-          <div className="table-wrap">
+          <div
+            className="table-wrap"
+            role="region"
+            aria-label="Vouchers table"
+            tabIndex={0}
+          >
             <Table size="small">
               <TableHead>
                 <TableRow>

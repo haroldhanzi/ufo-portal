@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import { ApiErrorAlert, Loading } from "../components/common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../components/common/ApiFeedback";
 import { DAY_MODES, DAYS, labelFor } from "../constants/omadaEnums";
 import { validatePartnerName } from "../constants/nameValidation";
 import { createSchedule, listSchedules } from "../services/scheduleService";
@@ -78,9 +78,14 @@ export default function SchedulePage() {
       <Alert severity="info" sx={{ mb: 2 }}>
         Unassigned schedules will be automatically deleted after some time.
       </Alert>
-      <ApiErrorAlert error={error} />
+      <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
-      <Paper className="table-wrap">
+      <Paper
+        className="table-wrap"
+        role="region"
+        aria-label="Schedules table"
+        tabIndex={0}
+      >
         <Table>
           <TableHead>
             <TableRow>

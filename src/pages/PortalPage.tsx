@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Button,
   Checkbox,
   Dialog,
@@ -25,7 +24,7 @@ import {
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import PageHeader from "../components/common/PageHeader";
-import { ApiErrorSnackbar, Loading } from "../components/common/ApiFeedback";
+import { ApiErrorDialog, Loading } from "../components/common/ApiFeedback";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ActionsMenu from "../components/common/ActionsMenu";
 import { validatePartnerName } from "../constants/nameValidation";
@@ -93,9 +92,14 @@ export default function PortalPage() {
         onAdd={() => setOpen(true)}
         onRefresh={load}
       />
-      <ApiErrorSnackbar error={error} onClose={() => setError(undefined)} />
+      <ApiErrorDialog error={error} onClose={() => setError(undefined)} />
       <Loading show={loading} />
-      <Paper className="table-wrap">
+      <Paper
+        className="table-wrap"
+        role="region"
+        aria-label="Portals table"
+        tabIndex={0}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -420,7 +424,11 @@ function AppearanceDialog({
                 }}
               />
             </Button>
-            {fileError && <Alert severity="error">{fileError}</Alert>}
+            <ApiErrorDialog
+              error={fileError}
+              onClose={() => setFileError("")}
+              title="Unable to use background image"
+            />
             {preview && (
               <>
                 <img
@@ -489,7 +497,11 @@ function AppearanceDialog({
                   }}
                 />
               </Button>
-              {logoError && <Alert severity="error">{logoError}</Alert>}
+              <ApiErrorDialog
+                error={logoError}
+                onClose={() => setLogoError("")}
+                title="Unable to use logo image"
+              />
               {logoPreview && (
                 <>
                   <img
